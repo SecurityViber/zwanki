@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zwanki Settings</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2064%2064%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22f%22%20x1%3D%22.15%22%20y1%3D%220%22%20x2%3D%22.85%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffbe48%22/%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%23ff6834%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23d61e76%22/%3E%3C/linearGradient%3E%3Cfilter%20id%3D%22f-shadow%22%20x%3D%22-30%25%22%20y%3D%22-30%25%22%20width%3D%22160%25%22%20height%3D%22160%25%22%3E%3CfeDropShadow%20dx%3D%22.6%22%20dy%3D%221.6%22%20stdDeviation%3D%221.6%22%20flood-color%3D%22%2346001e%22%20flood-opacity%3D%22.4%22/%3E%3C/filter%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214.4%22%20fill%3D%22url%28%23f%29%22/%3E%3Cg%20transform%3D%22rotate%289%2033.1%2033%29%22%20filter%3D%22url%28%23f-shadow%29%22%3E%3Crect%20x%3D%2217.5%22%20y%3D%2212.7%22%20width%3D%2231.2%22%20height%3D%2240.6%22%20rx%3D%224.9%22%20fill%3D%22%23fff%22/%3E%3Cpath%20d%3D%22M33.9%2020%2026.43%2035.28h5.85L30%2046l10.73-16.9h-6.02l3.74-9.1z%22%20fill%3D%22url%28%23f%29%22/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f5f2;
+    --surface: #ffffff;
+    --surface-2: #f0f0ec;
+    --border: #e3e3de;
+    --text: #1d1d1b;
+    --muted: #6e6e68;
+    --accent: #f26b1d;
+    --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent);
+    --ok: #2f9e66;
+    --warn: #c98516;
+    --bad: #d9473f;
+    --off: #b0b0a8;
+    --again: #d9473f;
+    --hard: #c98516;
+    --good: #2f9e66;
+    --easy: #3b82d6;
+    --show_answer: #8b5cf6;
+    --replay_audio: #0e9f9a;
+    --undo: #7c7c86;
+    --trainer_harder: #db2777;
+    --trainer_easier: #0891b2;
+    --trainer_easy: #64748b;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgb(0 0 0 / .04), 0 6px 20px rgb(0 0 0 / .04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110;
+      --surface: #1a1a19;
+      --surface-2: #242422;
+      --border: #30302d;
+      --text: #ececea;
+      --muted: #9b9b94;
+      --off: #5d5d58;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 28px 24px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 40px; height: 40px; flex: none; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+  .brand p { margin: 0; color: var(--muted); font-size: 13px; }
+  .status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 11px; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--border);
+    font-size: 13px; white-space: nowrap;
+  }
+  .pill b { font-weight: 500; color: var(--muted); }
+  .pill i, .conn i { width: 8px; height: 8px; border-radius: 50%; background: var(--off); flex: none; }
+  .is-ok i { background: var(--ok); }
+  .is-warn i { background: var(--warn); }
+  .is-bad i { background: var(--bad); }
+
+  .switch { display: inline-flex; align-items: center; gap: 9px; font-size: 13px; cursor: pointer; user-select: none; }
+  .status .switch { margin-left: 4px; }
+  .switch input { position: absolute; opacity: 0; pointer-events: none; }
+  .switch .track {
+    width: 38px; height: 22px; border-radius: 999px; background: var(--off);
+    position: relative; transition: background .2s; flex: none;
+  }
+  .switch .track::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+    border-radius: 50%; background: #fff; transition: transform .2s;
+    box-shadow: 0 1px 2px rgb(0 0 0 / .25);
+  }
+  .switch input:checked + .track { background: var(--ok); }
+  .switch input:checked + .track::after { transform: translateX(16px); }
+  .switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  main { max-width: 1160px; margin: 0 auto; padding: 0 24px 56px; }
+  .banner {
+    padding: 11px 14px; border-radius: 12px; margin-bottom: 16px; font-size: 14px;
+    background: color-mix(in srgb, var(--warn) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  }
+  .banner.bad {
+    background: color-mix(in srgb, var(--bad) 10%, var(--surface));
+    border-color: color-mix(in srgb, var(--bad) 35%, transparent);
+  }
+  .hint { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+  .hint strong { color: var(--text); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 20px; align-items: start; }
+  .grid + .grid { margin-top: 20px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 18px 16px;
+    min-width: 0;
+  }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 0 6px 6px; }
+  h2 { font-size: 16px; margin: 0; letter-spacing: -.01em; }
+  .conn { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); min-width: 0; }
+  .conn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  h3 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin: 18px 6px 6px;
+  }
+
+  .row {
+    display: grid; grid-template-columns: 38px 1fr minmax(150px, 46%);
+    align-items: center; gap: 12px; padding: 7px 6px; border-radius: 11px;
+    transition: background .15s;
+  }
+  .row:hover { background: var(--surface-2); }
+  .cap {
+    width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-weight: 600; font-size: 15px; transition: background .12s, color .12s, transform .12s, border-color .12s;
+  }
+  .row[data-big] .cap { border-radius: 50%; font-size: 11px; letter-spacing: .02em; }
+  .row.held { background: var(--accent-soft); }
+  .row.held .cap { background: var(--accent); border-color: var(--accent); color: #fff; transform: scale(.93); }
+  .row.pulse .cap { animation: pulse .6s ease-out; }
+  @keyframes pulse {
+    from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+    to { box-shadow: 0 0 0 14px transparent; }
+  }
+  .name { min-width: 0; }
+  .sel { position: relative; }
+  .sel .dot {
+    position: absolute; left: 11px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px;
+    border-radius: 50%; background: var(--off); pointer-events: none;
+  }
+  .sel::after {
+    content: ""; position: absolute; right: 12px; top: 50%; width: 6px; height: 6px; margin-top: -5px;
+    border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+    transform: rotate(45deg); pointer-events: none;
+  }
+  select {
+    width: 100%; appearance: none; -webkit-appearance: none;
+    font: inherit; font-size: 14px; color: var(--text);
+    padding: 7px 30px 7px 28px; border-radius: 9px;
+    background: var(--surface); border: 1px solid var(--border); cursor: pointer;
+  }
+  select:hover { border-color: color-mix(in srgb, var(--text) 25%, var(--border)); }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .row[data-action=""] select { color: var(--muted); }
+
+  .meter { display: grid; grid-template-columns: 74px 1fr 34px; align-items: center; gap: 12px; margin: 14px 6px; font-size: 14px; }
+  .bar { position: relative; height: 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; background: var(--off); transition: width .06s linear; }
+  .fill.over { background: var(--accent); }
+  .mark { position: absolute; top: -5px; bottom: -5px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--text); }
+  .mark.release { opacity: .3; }
+  .meter output { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .slider { display: block; margin: 18px 6px 4px; font-size: 14px; }
+  .slider span { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .slider output { font-variant-numeric: tabular-nums; font-weight: 600; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .small { color: var(--muted); font-size: 13px; margin: 6px 6px 0; }
+
+  .setting { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 6px; }
+  .setting + .setting { border-top: 1px solid var(--border); }
+  .label small { display: block; color: var(--muted); font-size: 13px; }
+  .btn {
+    font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 9px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text); white-space: nowrap;
+  }
+  .btn:hover:not(:disabled) { border-color: color-mix(in srgb, var(--text) 25%, var(--border)); }
+  .btn:focus-visible, .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.round { width: 44px; height: 44px; padding: 0; font-size: 22px; line-height: 1; border-radius: 50%; }
+  .btn.danger { color: var(--bad); }
+  .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 2px; }
+  .seg button {
+    font: inherit; font-size: 13px; border: 0; background: transparent; color: var(--muted);
+    padding: 5px 12px; border-radius: 7px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / .1); }
+  .seg button:disabled { cursor: default; opacity: .5; }
+  .target { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 6px 10px; }
+  .target .value { text-align: center; font-size: 30px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .target .value small { display: block; font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 6px; }
+  .stat { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+  .stat b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; color: var(--muted); }
+  .trainer-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 6px 0; }
+  .trainer-foot .small { margin: 0; }
+  .off-note { color: var(--muted); font-size: 14px; margin: 10px 6px 0; }
+
+  .bpm { text-align: center; font-size: 44px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin: 6px 0 2px; line-height: 1.1; }
+  .bpm small { display: block; font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--muted); }
+  .bpm.live { color: var(--again); }
+  #rides { list-style: none; margin: 4px 0 6px; padding: 0; }
+  #rides li {
+    display: grid; grid-template-columns: 1fr auto auto auto; gap: 14px; align-items: baseline;
+    padding: 8px 6px; border-top: 1px solid var(--border); font-size: 14px; font-variant-numeric: tabular-nums;
+  }
+  #rides li span:not(:first-child) { color: var(--muted); text-align: right; }
+  #rides .empty { display: block; color: var(--muted); }
+  .is-rec i { background: var(--again); animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .code { display: flex; gap: 8px; align-items: center; margin: 2px 6px 0; }
+  .code code {
+    flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; padding: 7px 10px; border-radius: 8px;
+    font: 12px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    background: var(--surface-2); border: 1px solid var(--border);
+  }
+
+  #log { list-style: none; margin: 4px 0 0; padding: 0; max-height: 360px; overflow-y: auto; }
+  #log li {
+    display: grid; grid-template-columns: 66px 1fr; gap: 2px 10px;
+    padding: 8px 6px; border-top: 1px solid var(--border); font-size: 14px;
+  }
+  #log li:first-child { border-top: 0; }
+  #log time { color: var(--muted); font: 12px/1.9 ui-monospace, "SF Mono", Menlo, Consolas, monospace; grid-row: span 2; }
+  #log .res { color: var(--muted); font-size: 13px; }
+  #log .empty { display: block; color: var(--muted); border: 0; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; }
+  .tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--off); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px);
+    background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    max-width: calc(100% - 32px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.bad { background: var(--bad); color: #fff; }
+
+  @media (max-width: 520px) {
+    header, main { padding-left: 16px; padding-right: 16px; }
+    .row { grid-template-columns: 34px 1fr; }
+    .row .sel { grid-column: 1 / -1; }
+    .cap { width: 34px; height: 34px; }
+    .setting { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg class="logo" width="40" height="40" aria-hidden="true" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="zw" x1=".15" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#ffbe48"/><stop offset=".45" stop-color="#ff6834"/><stop offset="1" stop-color="#d61e76"/></linearGradient><filter id="zw-shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx=".6" dy="1.6" stdDeviation="1.6" flood-color="#46001e" flood-opacity=".4"/></filter></defs><rect width="64" height="64" rx="14.4" fill="url(#zw)"/><g transform="rotate(9 33.1 33)" filter="url(#zw-shadow)"><rect x="17.5" y="12.7" width="31.2" height="40.6" rx="4.9" fill="#fff"/><path d="M33.9 20 26.43 35.28h5.85L30 46l10.73-16.9h-6.02l3.74-9.1z" fill="url(#zw)"/></g></svg>
+    <div>
+      <h1>Zwanki</h1>
+      <p>Zwift Ride buttons for Anki and your trainer</p>
+    </div>
+  </div>
+  <div class="status">
+    <span class="pill" id="pill-left"><i></i>Left <b>…</b></span>
+    <span class="pill" id="pill-right"><i></i>Right <b>…</b></span>
+    <span class="pill" id="pill-anki"><i></i>Anki <b>…</b></span>
+    <label class="switch" title="Turn off to try buttons without them doing anything">
+      <input type="checkbox" id="active" checked>
+      <span class="track"></span>Buttons active
+    </label>
+  </div>
+</header>
+
+<main>
+  <div class="banner bad" id="offline" hidden>Can't reach Zwanki. It may have stopped; start it again and this page reconnects by itself.</div>
+  <div class="banner" id="paused" hidden><strong>Paused.</strong> Button presses light up here but don't do anything. Turn “Buttons active” back on to ride.</div>
+  <p class="hint"><strong>Press any button on the bike</strong> and it lights up below. Pick what it should do; changes save and apply instantly.</p>
+
+  <div class="grid">
+    <section class="card" id="side-left"></section>
+    <section class="card" id="side-right"></section>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head"><h2>Smart trainer</h2><span class="conn" id="conn-trainer"><i></i><span>…</span></span></div>
+      <div class="setting">
+        <span class="label">Use my trainer<small>A Wahoo KICKR or any other trainer with standard Bluetooth control.</small></span>
+        <label class="switch"><input type="checkbox" id="trainer-enabled" aria-label="Use my trainer"><span class="track"></span></label>
+      </div>
+      <div id="trainer-controls">
+        <div class="setting">
+          <span class="label">Harder / easier changes</span>
+          <div class="seg" id="trainer-mode" role="group" aria-label="What harder and easier change">
+            <button type="button" data-mode="resistance">Resistance</button>
+            <button type="button" data-mode="grade">Hill</button>
+            <button type="button" data-mode="power">ERG</button>
+          </div>
+        </div>
+        <div class="target">
+          <button type="button" class="btn round" id="trainer-easier" aria-label="Easier">−</button>
+          <div class="value" id="trainer-value">–<small>…</small></div>
+          <button type="button" class="btn round" id="trainer-harder" aria-label="Harder">+</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="bike-speed">–</b><span>km/h</span></div>
+          <div class="stat"><b id="bike-cadence">–</b><span>rpm</span></div>
+          <div class="stat"><b id="bike-power">–</b><span>watts</span></div>
+        </div>
+        <div class="trainer-foot">
+          <p class="small">Each press: 5% resistance, 0.5% hill or 10 W. A new mode starts at 0%, 0% or 100 W. Assign “Trainer harder / easier” to buttons above.</p>
+          <button type="button" class="btn" id="trainer-easy">Back to easy</button>
+        </div>
+      </div>
+      <p class="off-note" id="trainer-off">Turn this on to connect. Connecting alone changes nothing on the trainer; when you turn it off or quit Zwanki, the trainer goes back to easy.</p>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Heart rate</h2><span class="conn" id="conn-hr"><i></i><span>…</span></span></div>
+      <div class="setting">
+        <span class="label">Use my heart rate strap<small>A Polar H10 or any other Bluetooth heart rate sensor. Put it on so it wakes up.</small></span>
+        <label class="switch"><input type="checkbox" id="hr-enabled" aria-label="Use my heart rate strap"><span class="track"></span></label>
+      </div>
+      <div class="bpm" id="bpm">–<small>bpm</small></div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head"><h2>Rides</h2><span class="conn" id="conn-ride"><i></i><span>…</span></span></div>
+      <div class="setting">
+        <span class="label">Record rides<small>Starts when you pedal with the trainer connected, ends after 5 minutes without pedaling.</small></span>
+        <label class="switch"><input type="checkbox" id="record" aria-label="Record rides"><span class="track"></span></label>
+      </div>
+      <ol id="rides"></ol>
+      <h3>Use with Claude</h3>
+      <p class="small">Claude can read your rides directly from Zwanki, even when Zwanki isn't running. Then ask it for your weekly training review.</p>
+      <div class="setting">
+        <span class="label">Claude Desktop<small id="desktop-note">…</small></span>
+        <button type="button" class="btn" id="add-desktop">Add to Claude Desktop</button>
+      </div>
+      <div class="setting"><span class="label">Claude Code<small>Run this once in a terminal:</small></span></div>
+      <div class="code"><code id="code-command">…</code><button type="button" class="btn" id="copy-command">Copy</button></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Activity</h2></div>
+      <ol id="log"></ol>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head"><h2>Big button sensitivity</h2></div>
+      <p class="small">Press a big button to see how hard you're pushing. The dark line is where it counts as a press, the faint line is how far you have to let go before it can fire again.</p>
+      <div class="meter" data-big="left_big"><span>Left big</span><div class="bar"><div class="fill"></div><div class="mark release"></div><div class="mark press"></div></div><output>0</output></div>
+      <div class="meter" data-big="right_big"><span>Right big</span><div class="bar"><div class="fill"></div><div class="mark release"></div><div class="mark press"></div></div><output>0</output></div>
+      <label class="slider"><span>Counts as a press at <output id="press-out"></output></span>
+        <input type="range" id="press" min="20" max="100" step="5"></label>
+      <label class="slider"><span>Can fire again below <output id="release-out"></output></span>
+        <input type="range" id="release" min="5" max="95" step="5"></label>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>General</h2><span class="conn" id="version"></span></div>
+      <div class="setting">
+        <span class="label">Open Anki when Zwanki starts</span>
+        <label class="switch"><input type="checkbox" id="open-anki" aria-label="Open Anki when Zwanki starts"><span class="track"></span></label>
+      </div>
+      <div class="setting">
+        <span class="label">Quit Zwanki<small>Disconnects the controllers and puts the trainer back to easy.</small></span>
+        <button type="button" class="btn danger" id="quit">Quit</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const ACTION_GROUPS = [
+  ["", [["", "Nothing"]]],
+  ["Anki", [
+    ["show_answer", "Show answer"],
+    ["again", "Again (1)"],
+    ["hard", "Hard (2)"],
+    ["good", "Good (3)"],
+    ["easy", "Easy (4)"],
+    ["replay_audio", "Replay audio"],
+    ["undo", "Undo"],
+  ]],
+  ["Trainer", [
+    ["trainer_harder", "Trainer harder"],
+    ["trainer_easier", "Trainer easier"],
+    ["trainer_easy", "Trainer back to easy"],
+  ]],
+];
+const ACTION_LABEL = Object.fromEntries(ACTION_GROUPS.flatMap(([, actions]) => actions));
+
+// [id, keycap, name in the list, name in the activity log]
+const SIDES = {
+  left: ["Left controller", [
+    ["Three-button cluster", [
+      ["left_big", "BIG", "Big button", "Left big"],
+      ["left_up", "↑", "Up", "Left up"],
+      ["left_down", "↓", "Down", "Left down"],
+    ]],
+    ["D-pad", [
+      ["dpad_up", "↑", "Up", "D-pad up"],
+      ["dpad_left", "←", "Left", "D-pad left"],
+      ["dpad_right", "→", "Right", "D-pad right"],
+      ["dpad_down", "↓", "Down", "D-pad down"],
+    ]],
+    ["Other", [
+      ["powerup_left", "✦", "Power-up", "Left power-up"],
+      ["onoff_left", "⏻", "On/Off", "Left on/off"],
+    ]],
+  ]],
+  right: ["Right controller", [
+    ["Three-button cluster", [
+      ["right_big", "BIG", "Big button", "Right big"],
+      ["right_up", "↑", "Up", "Right up"],
+      ["right_down", "↓", "Down", "Right down"],
+    ]],
+    ["Face buttons", [
+      ["y", "Y", "Y", "Y"],
+      ["z", "Z", "Z", "Z"],
+      ["a", "A", "A", "A"],
+      ["b", "B", "B", "B"],
+    ]],
+    ["Other", [
+      ["powerup_right", "✦", "Power-up", "Right power-up"],
+      ["onoff_right", "⏻", "On/Off", "Right on/off"],
+    ]],
+  ]],
+};
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const rows = {};
+const logName = {};
+let state = null;
+
+function el(tag, props = {}, ...children) {
+  const node = Object.assign(document.createElement(tag), props);
+  node.append(...children);
+  return node;
+}
+
+function actionColor(action) {
+  return action ? `var(--${action})` : "var(--off)";
+}
+
+function actionOptions() {
+  return ACTION_GROUPS.map(([group, actions]) => {
+    const options = actions.map(([value, label]) => el("option", { value, textContent: label }));
+    return group ? el("optgroup", { label: group }, ...options) : options[0];
+  });
+}
+
+function render() {
+  for (const [side, [title, groups]] of Object.entries(SIDES)) {
+    const card = $(`#side-${side}`);
+    card.append(el("div", { className: "card-head" },
+      el("h2", { textContent: title }),
+      el("span", { className: "conn", id: `conn-${side}` }, el("i"), el("span", { textContent: "…" }))));
+    for (const [groupTitle, buttons] of groups) {
+      card.append(el("h3", { textContent: groupTitle }));
+      for (const [id, cap, name, long] of buttons) {
+        logName[id] = long;
+        const select = el("select", { ariaLabel: `${title}: ${name}` }, ...actionOptions());
+        select.addEventListener("change", () => assign(id, select.value));
+        const row = el("div", { className: "row" },
+          el("span", { className: "cap", textContent: cap }),
+          el("span", { className: "name", textContent: name }),
+          el("span", { className: "sel" }, el("i", { className: "dot" }), select));
+        row.dataset.button = id;
+        if (id.endsWith("_big")) row.dataset.big = "";
+        rows[id] = row;
+        card.append(row);
+      }
+    }
+  }
+}
+
+function applyConfig(config) {
+  state.config = config;
+  for (const [id, row] of Object.entries(rows)) {
+    const action = config.buttons[id] || "";
+    row.dataset.action = action;
+    $("select", row).value = action;
+    $(".dot", row).style.background = actionColor(action);
+  }
+  $("#press").value = config.big_buttons.press_threshold;
+  $("#release").value = config.big_buttons.release_threshold;
+  showThresholds();
+  $("#open-anki").checked = config.general.open_anki;
+  $("#hr-enabled").checked = config.heart_rate.enabled;
+  $("#record").checked = config.rides.record;
+  $("#trainer-enabled").checked = config.trainer.enabled;
+  $("#trainer-controls").hidden = !config.trainer.enabled;
+  $("#trainer-off").hidden = config.trainer.enabled;
+  for (const button of document.querySelectorAll("#trainer-mode button")) {
+    button.setAttribute("aria-pressed", String(button.dataset.mode === config.trainer.mode));
+  }
+  if (state.trainer) setTrainer(state.trainer);
+  if (state.heart_rate) setHeartRate(state.heart_rate);
+  if ("ride" in state) setRide(state.ride);
+}
+
+function showThresholds() {
+  const press = +$("#press").value, release = +$("#release").value;
+  $("#press-out").value = press;
+  $("#release-out").value = release;
+  for (const meter of document.querySelectorAll(".meter")) {
+    $(".mark.press", meter).style.left = press + "%";
+    $(".mark.release", meter).style.left = release + "%";
+  }
+  if (state) setPressure(state.pressure || {});
+}
+
+function setStatus({ controllers, anki, paused }) {
+  Object.assign(state, { controllers, anki, paused });
+  for (const side of ["left", "right"]) {
+    const c = controllers[side];
+    pill(`#pill-${side}`, c.connected ? "ok" : "", c.connected ? (c.battery == null ? "connected" : `${c.battery}%`) : "asleep");
+    conn(`#conn-${side}`, c.connected ? "ok" : "",
+      c.connected ? `Connected${c.battery == null ? "" : ` · battery ${c.battery}%`}` : "Asleep: press a button to wake it");
+  }
+  const ankiText = { reviewing: ["ok", "reviewing"], open: ["warn", "not reviewing"], offline: ["bad", "not running"] };
+  pill("#pill-anki", ...(ankiText[anki] || ["", "…"]));
+  $("#active").checked = !paused;
+  $("#paused").hidden = !paused;
+}
+
+function setTrainer(t) {
+  state.trainer = t;
+  const enabled = state.config.trainer.enabled;
+  if (!enabled) conn("#conn-trainer", "", "Off");
+  else if (t.connected) conn("#conn-trainer", "ok", `Connected · ${t.name}`);
+  else if (t.error) conn("#conn-trainer", "bad", t.error);
+  else conn("#conn-trainer", "warn", "Connecting…");
+
+  const value = +(+t.target).toFixed(1);
+  const [big, small] = {
+    resistance: [`${value}%`, "resistance"],
+    grade: [`${value}%`, "hill"],
+    power: [`${value} W`, "ERG target"],
+  }[t.mode] || ["–", "not set by Zwanki yet"];
+  $("#trainer-value").replaceChildren(big, el("small", { textContent: small }));
+  const bike = t.bike || {};
+  const fmt = (v, digits = 0) => v == null || !t.connected ? "–" : (+v).toFixed(digits);
+  $("#bike-speed").textContent = fmt(bike.speed_kmh, 1);
+  $("#bike-cadence").textContent = fmt(bike.cadence_rpm);
+  $("#bike-power").textContent = fmt(bike.power_w);
+}
+
+function setHeartRate(h) {
+  state.heart_rate = h;
+  const enabled = state.config.heart_rate.enabled;
+  if (!enabled) conn("#conn-hr", "", "Off");
+  else if (h.connected) conn("#conn-hr", "ok", `Connected · ${h.name}`);
+  else if (h.error) conn("#conn-hr", "bad", h.error);
+  else conn("#conn-hr", "warn", "Looking for your strap…");
+  const live = h.connected && h.bpm;
+  $("#bpm").replaceChildren(live ? String(h.bpm) : "–", el("small", { textContent: "bpm" }));
+  $("#bpm").classList.toggle("live", Boolean(live));
+}
+
+function setRide(ride) {
+  state.ride = ride;
+  if (ride) {
+    const parts = [`${ride.moving_min} min`];
+    if (ride.avg_power_w != null) parts.push(`${ride.avg_power_w} W`);
+    if (ride.avg_heart_rate_bpm != null) parts.push(`${ride.avg_heart_rate_bpm} bpm`);
+    conn("#conn-ride", "rec", `Recording · ${parts.join(" · ")}`);
+  } else {
+    conn("#conn-ride", "", state.config.rides.record ? "Not riding" : "Recording off");
+  }
+}
+
+function renderRides({ rides, claude }) {
+  const list = $("#rides");
+  const when = (iso) => new Date(iso).toLocaleString([], { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  list.replaceChildren(...rides.map((r) => el("li", {},
+    el("span", { textContent: when(r.start) + (r.in_progress ? " · now" : "") }),
+    el("span", { textContent: `${Math.round(r.moving_min)} min` }),
+    el("span", { textContent: r.avg_power_w == null ? "– W" : `${Math.round(r.avg_power_w)} W` }),
+    el("span", { textContent: r.avg_heart_rate_bpm == null ? "– bpm" : `${Math.round(r.avg_heart_rate_bpm)} bpm` }))));
+  if (!rides.length) list.append(el("li", { className: "empty", textContent: "No rides yet." }));
+  renderClaude(claude);
+}
+
+function renderClaude(c) {
+  const button = $("#add-desktop");
+  button.disabled = !c.desktop_available;
+  button.textContent = c.desktop_added ? "Added ✓" : c.desktop_outdated ? "Update" : "Add to Claude Desktop";
+  $("#desktop-note").textContent = !c.desktop_available ? "Not installed on this computer."
+    : c.desktop_added ? "Connected. Restart Claude Desktop if you've just added it."
+    : c.desktop_outdated ? "Zwanki has moved since it was added; update the entry."
+    : "Adds Zwanki to Claude Desktop's settings (a backup is kept).";
+  $("#code-command").textContent = c.claude_code;
+}
+
+async function loadRides() {
+  try {
+    renderRides(await api("GET", "/api/rides"));
+  } catch (err) {
+    toast(`Couldn't load rides: ${err.message}`, true);
+  }
+}
+
+function pill(sel, level, text) {
+  const node = $(sel);
+  node.className = "pill" + (level ? ` is-${level}` : "");
+  $("b", node).textContent = text;
+}
+
+function conn(sel, level, text) {
+  const node = $(sel);
+  node.className = "conn" + (level ? ` is-${level}` : "");
+  $("span", node).textContent = text;
+  node.title = text;
+}
+
+function setHeld(list) {
+  const held = new Set(list);
+  for (const [id, row] of Object.entries(rows)) {
+    const was = row.classList.contains("held");
+    const is = held.has(id);
+    row.classList.toggle("held", is);
+    if (is && !was) {
+      row.classList.remove("pulse");
+      void row.offsetWidth; // restart the animation
+      row.classList.add("pulse");
+    }
+  }
+}
+
+function setPressure(pressure) {
+  state.pressure = pressure;
+  const press = +$("#press").value;
+  for (const meter of document.querySelectorAll(".meter")) {
+    const value = pressure[meter.dataset.big] || 0;
+    const fill = $(".fill", meter);
+    fill.style.width = value + "%";
+    fill.classList.toggle("over", value >= press);
+    $("output", meter).value = value;
+  }
+}
+
+function logEntry({ time, button, action, result }) {
+  const what = button
+    ? el("span", {}, el("b", { textContent: logName[button] || button }), " → ",
+        el("span", { className: "tag" }, el("i", { style: `background:${actionColor(action)}` }),
+          action ? ACTION_LABEL[action] : "nothing"))
+    : el("b", { textContent: "Unknown button" });
+  return el("li", {}, el("time", { textContent: time }), what, el("span", { className: "res", textContent: result }));
+}
+
+function renderLog(history) {
+  const list = $("#log");
+  list.replaceChildren(...history.slice().reverse().map(logEntry));
+  if (!history.length) list.append(el("li", { className: "empty", textContent: "Nothing yet. Press a button on the bike." }));
+}
+
+function addLog(entry) {
+  state.history.push(entry);
+  const list = $("#log");
+  $(".empty", list)?.remove();
+  list.prepend(logEntry(entry));
+  while (list.children.length > 50) list.lastChild.remove();
+}
+
+function applyState(s) {
+  state = s;
+  $("#version").textContent = `Version ${s.version}`;
+  applyConfig(s.config);
+  setStatus(s);
+  setTrainer(s.trainer);
+  setHeartRate(s.heart_rate);
+  setRide(s.ride);
+  setHeld(s.held);
+  setPressure(s.pressure);
+  renderLog(s.history);
+}
+
+async function api(method, path, body) {
+  const init = { method };
+  if (body !== undefined) {
+    init.headers = { "Content-Type": "application/json" };
+    init.body = JSON.stringify(body);
+  }
+  const resp = await fetch(path, init);
+  if (!resp.ok) throw new Error(await resp.text() || resp.statusText);
+  return resp.json();
+}
+
+let toastTimer;
+function toast(text, bad = false) {
+  const node = $("#toast");
+  node.textContent = text;
+  node.className = "toast show" + (bad ? " bad" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => node.classList.remove("show"), bad ? 4000 : 1600);
+}
+
+async function saveConfig(changes) {
+  try {
+    applyState(await api("PUT", "/api/config", { ...state.config, ...changes }));
+    toast("Saved");
+  } catch (err) {
+    toast(`Couldn't save: ${err.message}`, true);
+    applyState(await api("GET", "/api/state"));
+  }
+}
+
+function assign(id, action) {
+  const buttons = { ...state.config.buttons };
+  if (action) buttons[id] = action; else delete buttons[id];
+  saveConfig({ buttons });
+}
+
+function thresholdsChanged() {
+  saveConfig({ big_buttons: { press_threshold: +$("#press").value, release_threshold: +$("#release").value } });
+}
+
+async function trainer(action) {
+  try {
+    const resp = await api("PUT", "/api/trainer", { action });
+    applyState(resp);
+    toast(resp.result, resp.result.startsWith("trainer:"));
+  } catch (err) {
+    toast(`Trainer: ${err.message}`, true);
+  }
+}
+
+$("#press").addEventListener("input", () => {
+  if (+$("#release").value >= +$("#press").value) $("#release").value = +$("#press").value - 5;
+  showThresholds();
+});
+$("#release").addEventListener("input", () => {
+  if (+$("#release").value >= +$("#press").value) $("#press").value = Math.min(100, +$("#release").value + 5);
+  showThresholds();
+});
+$("#press").addEventListener("change", thresholdsChanged);
+$("#release").addEventListener("change", thresholdsChanged);
+
+$("#open-anki").addEventListener("change", (e) => saveConfig({ general: { ...state.config.general, open_anki: e.target.checked } }));
+$("#hr-enabled").addEventListener("change", (e) => saveConfig({ heart_rate: { enabled: e.target.checked } }));
+$("#record").addEventListener("change", (e) => saveConfig({ rides: { record: e.target.checked } }));
+$("#add-desktop").addEventListener("click", async () => {
+  try {
+    renderClaude(await api("PUT", "/api/claude-desktop", {}));
+    toast("Added. Restart Claude Desktop to use it.");
+  } catch (err) {
+    toast(err.message, true);
+  }
+});
+$("#copy-command").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("#code-command").textContent);
+    toast("Copied");
+  } catch {
+    toast("Couldn't copy; select the command and copy it yourself", true);
+  }
+});
+$("#trainer-enabled").addEventListener("change", (e) => saveConfig({ trainer: { ...state.config.trainer, enabled: e.target.checked } }));
+for (const button of document.querySelectorAll("#trainer-mode button")) {
+  button.addEventListener("click", () => saveConfig({ trainer: { ...state.config.trainer, mode: button.dataset.mode } }));
+}
+$("#trainer-harder").addEventListener("click", () => trainer("trainer_harder"));
+$("#trainer-easier").addEventListener("click", () => trainer("trainer_easier"));
+$("#trainer-easy").addEventListener("click", () => trainer("trainer_easy"));
+
+$("#active").addEventListener("change", async (e) => {
+  try {
+    applyState(await api("PUT", "/api/paused", { paused: !e.target.checked }));
+    toast(e.target.checked ? "Buttons active" : "Paused");
+  } catch (err) {
+    toast(`Couldn't switch: ${err.message}`, true);
+  }
+});
+
+$("#quit").addEventListener("click", async () => {
+  if (!confirm("Quit Zwanki? The controllers disconnect and the trainer goes back to easy.")) return;
+  await api("PUT", "/api/quit", {}).catch(() => {});
+  $("#offline").textContent = "Zwanki has quit. Start it again and this page reconnects by itself.";
+});
+
+function listen() {
+  const events = new EventSource("/api/events");
+  events.onopen = async () => {
+    $("#offline").hidden = true;
+    applyState(await api("GET", "/api/state"));
+    loadRides();
+  };
+  events.onerror = () => { $("#offline").hidden = false; };
+  const on = (name, fn) => events.addEventListener(name, (e) => state && fn(JSON.parse(e.data)));
+  on("held", setHeld);
+  on("pressure", setPressure);
+  on("status", setStatus);
+  on("config", applyConfig);
+  on("trainer", setTrainer);
+  on("heart_rate", setHeartRate);
+  on("ride", setRide);
+  on("rides", renderRides);
+  on("log", addLog);
+}
+
+render();
+listen();
+</script>
+</body>
+</html>
