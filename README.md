@@ -20,7 +20,14 @@ Not affiliated with Zwift, Wahoo or Anki.
 
 ## Install
 
-Download the build for your system from the [Releases](../../releases) page.
+Download the latest build for your system (all versions are on the [Releases](https://github.com/SecurityViber/zwanki/releases) page):
+
+| System | Download |
+|---|---|
+| macOS, Apple Silicon | [zwanki-macos-arm64.zip](https://github.com/SecurityViber/zwanki/releases/latest/download/zwanki-macos-arm64.zip) |
+| macOS, Intel | [zwanki-macos-x86_64.zip](https://github.com/SecurityViber/zwanki/releases/latest/download/zwanki-macos-x86_64.zip) |
+| Windows 10/11 | [zwanki-windows-x64.zip](https://github.com/SecurityViber/zwanki/releases/latest/download/zwanki-windows-x64.zip) |
+| Linux x86_64 | [zwanki-linux-x86_64.tar.gz](https://github.com/SecurityViber/zwanki/releases/latest/download/zwanki-linux-x86_64.tar.gz) |
 
 **macOS:** unzip, move `Zwanki.app` to Applications and open it. The app isn't signed by an Apple developer account yet, so macOS blocks the first launch: open System Settings → Privacy & Security and click **Open Anyway** (or run `xattr -dr com.apple.quarantine /Applications/Zwanki.app`). Allow Bluetooth when asked. Zwanki lives in the menu bar; it has no Dock icon.
 
@@ -103,7 +110,9 @@ Build the app for the system you're on:
 .venv/bin/pyinstaller zwanki.spec           # -> dist/Zwanki.app, dist/zwanki/zwanki.exe or dist/zwanki
 ```
 
-GitHub Actions (`.github/workflows/build.yml`) tests and builds every push for macOS (Apple Silicon and Intel), Windows and Linux. Pushing a tag such as `v0.1.0` publishes the builds as a release.
+GitHub Actions (`.github/workflows/build.yml`) tests, builds and smoke-tests every push for macOS (Apple Silicon and Intel), Windows and Linux.
+
+**Releasing:** on GitHub, open Actions → Build → **Run workflow** and enter a version such as `0.2.0`. The pipeline tags the commit, stamps the version into the apps, and publishes a release with all four builds and their SHA-256 checksums. Pushing a tag (`git tag v0.2.0 && git push origin v0.2.0`) does the same. A version with a suffix, like `0.2.0-beta.1`, becomes a pre-release.
 
 ### How it works
 

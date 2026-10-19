@@ -113,6 +113,11 @@ class Server:
             self._store = RideStore(self.db_path, readonly=True)
         return self._store
 
+    def close(self):
+        if self._store is not None:
+            self._store.close()
+            self._store = None
+
     def handle(self, message):
         """Answer one JSON-RPC message; returns None for notifications."""
         if not isinstance(message, dict):
@@ -153,6 +158,13 @@ class Server:
 def serve(stdin=sys.stdin, stdout=sys.stdout, db_path=RIDES_PATH):
     """Read newline-delimited JSON-RPC from stdin until it closes. Nothing else may go to stdout."""
     server = Server(db_path)
+    try:
+        _serve(server, stdin, stdout)
+    finally:
+        server.close()  # Windows won't let the app touch the database while it's open
+
+
+def _serve(server, stdin, stdout):
     for line in stdin:
         if not line.strip():
             continue

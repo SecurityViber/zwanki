@@ -1,6 +1,9 @@
 # Tests Zwanki, then builds the app for macOS (Apple Silicon + Intel), Windows and Linux.
-# Every run uploads the builds as workflow artifacts; pushing a tag like v0.1.0 also
-# publishes them as a GitHub release.
+# Every run uploads the builds as workflow artifacts.
+#
+# To publish a release: Actions -> Build -> "Run workflow", enter a version such as 0.2.0.
+# (Pushing a tag like v0.2.0 does the same.) The pipeline tags the commit, stamps the version
+# into the apps, and publishes them with checksums as a GitHub release.
 name: Build
 
 on:
@@ -9,13 +12,42 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Version to release, e.g. 0.2.0 (leave empty to just build)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
 
 jobs:
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - id: version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          REQUESTED: ${{ inputs.release }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then v="$REF_NAME"; else v="$REQUESTED"; fi
+          v="${v#v}"
+          if [ -n "$v" ] && ! [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$v' isn't a version like 1.2.3"
+            exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "tag=${v:+v$v}" >> "$GITHUB_OUTPUT"
+          echo "${v:+Releasing v$v}${v:-Build only, no release}"
+
   build:
     name: ${{ matrix.name }}
+    needs: version
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -48,6 +80,13 @@ jobs:
 
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+
+      - name: Stamp release version
+        if: needs.version.outputs.version != ''
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        shell: bash
+        run: python scripts/set_version.py "$VERSION"
 
       - name: Build
         run: |
@@ -88,8 +127,9 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    name: Release
+    needs: [version, build]
+    if: needs.version.outputs.tag != ''
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -102,4 +142,28 @@ jobs:
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" release/* --repo "$GITHUB_REPOSITORY" --title "Zwanki $GITHUB_REF_NAME" --generate-notes
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          (cd release && sha256sum -- * > SHA256SUMS.txt)
+          download="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG"
+          cat > notes.md <<EOF
+          ## Downloads
+
+          | System | File |
+          |---|---|
+          | macOS, Apple Silicon (M1 and newer) | [zwanki-macos-arm64.zip]($download/zwanki-macos-arm64.zip) |
+          | macOS, Intel | [zwanki-macos-x86_64.zip]($download/zwanki-macos-x86_64.zip) |
+          | Windows 10/11 (64-bit) | [zwanki-windows-x64.zip]($download/zwanki-windows-x64.zip) |
+          | Linux (x86_64) | [zwanki-linux-x86_64.tar.gz]($download/zwanki-linux-x86_64.tar.gz) |
+
+          - **macOS:** unzip, move Zwanki to Applications and open it. The app isn't signed with an Apple developer account, so the first time, macOS blocks it: open System Settings → Privacy & Security and click **Open Anyway**. Allow Bluetooth when asked. Zwanki lives in the menu bar.
+          - **Windows:** unzip and run \`zwanki.exe\` in the \`zwanki\` folder; if SmartScreen warns, click **More info → Run anyway**.
+          - **Linux:** extract and run \`./zwanki\` (needs BlueZ).
+
+          You also need Anki with the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) add-on. See the [README](https://github.com/$GITHUB_REPOSITORY#readme) for setup, the trainer, and the weekly review with Claude. Checksums are in \`SHA256SUMS.txt\`.
+
+          EOF
+          prerelease=""
+          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" release/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Zwanki $TAG" --notes-file notes.md --generate-notes $prerelease

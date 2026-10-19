@@ -48,6 +48,7 @@ class RideStore:
             path.parent.mkdir(parents=True, exist_ok=True)
             self.db = sqlite3.connect(path)
             self.db.execute("PRAGMA journal_mode = WAL")  # the MCP server reads while we write
+            self.db.execute("PRAGMA synchronous = NORMAL")  # safe with WAL, and far fewer disk syncs
             self.db.execute("PRAGMA foreign_keys = ON")
             self.db.executescript(SCHEMA)
         self.db.row_factory = sqlite3.Row
